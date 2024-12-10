@@ -1,54 +1,72 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <SDL.h>
+#include "display.h"
+#include "vec2.h"
 
-int main(int argc, char** argv)
-{
-    SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_Window* window = SDL_CreateWindow("SDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+bool is_running = false;
 
-    // Define vertices as a static array
-    SDL_Vertex verts[] = {
-        {
-            .position = {400, 150},
-            .color = {255, 0, 0, 255},
-            .tex_coord = {0, 0}
-        },
-        {
-            .position = {200, 450},
-            .color = {0, 0, 255, 255},
-            .tex_coord = {0, 0}
-        },
-        {
-            .position = {600, 450},
-            .color = {0, 255, 0, 255},
-            .tex_coord = {0, 0}
-        }
-    };
-    
-    int num_verts = sizeof(verts) / sizeof(verts[0]);
-    
-    SDL_bool running = SDL_TRUE;
-    while (running)
-    {
-        SDL_Event ev;
-        while (SDL_PollEvent(&ev))
-        {
-            if ((SDL_QUIT == ev.type) ||
-                (SDL_KEYDOWN == ev.type && SDL_SCANCODE_ESCAPE == ev.key.keysym.scancode))
-            {
-                running = SDL_FALSE;
-                break;
-            }
-        }
+vec2_t vertices[4] = {
+  { .x = 40, .y = 40 },
+  { .x = 80, .y = 40 },
+  { .x = 40, .y = 80 }
+};
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-        SDL_RenderClear(renderer);
-        SDL_RenderGeometry(renderer, NULL, verts, num_verts, NULL, 0);
-        SDL_RenderPresent(renderer);
+void process_input(void) {
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    switch (event.type) {
+      case SDL_QUIT:
+        is_running = false;
+        break;
+      case SDL_KEYDOWN:
+        if (event.key.keysym.sym == SDLK_ESCAPE)
+          is_running = false;
+        break;
     }
+  }
+}
 
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    return 0;
+void triangle_fill(vec2_t v0, vec2_t v1, vec2_t v2, uint32_t color) {
+  // Finds the bounding box with all candidate pixels
+  int x_min = fmin(fmin(v0.x, v1.x), v2.x);
+  int y_min = fmin(fmin(v0.y, v1.y), v2.y);
+  int x_max = fmax(fmax(v0.x, v1.x), v2.x);
+  int y_max = fmax(fmax(v0.y, v1.y), v2.y);
+
+  // Loop all candidate pixels inside the bounding box
+  for (int y = y_min; y <= y_max; y++) {
+    for (int x = x_min; x <= x_max; x++) {
+      vec2_t p = { x, y };
+
+          draw_pixel(x, y, 0xFF00FF00);
+    }
+  }
+}
+
+void render(void) {
+  clear_framebuffer(0xFF000000);
+ 
+  vec2_t v0 = vertices[0];
+  vec2_t v1 = vertices[1];
+  vec2_t v2 = vertices[2];
+
+  triangle_fill(v0, v1, v2, 0xFF00FF00);
+
+  render_framebuffer();
+}
+
+int main(void) {
+  is_running = create_window();
+
+  while (is_running) {
+    fix_framerate();
+    process_input();
+    render();
+  }
+
+  destroy_window();
+
+  return EXIT_SUCCESS;
 }
