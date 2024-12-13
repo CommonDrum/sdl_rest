@@ -7,6 +7,31 @@
 
 bool is_running = false;
 
+
+const int NO_OF_POINTS = 9 * 9 * 9;
+const float FOV = 64.0;
+vec3_t  matrix[NO_OF_POINTS];
+
+int current_index = 0;
+
+void init_matrix(){
+  for (float x = -1; x <= 1; x += 0.25) {
+    for (float y = -1; y <= 1; y += 0.25) {
+      for (float z = -1; z <= 1; z += 0.25) {
+        vec3_t new_point = {x,y,z};
+        matrix[current_index++] = new_point;
+      }
+    }
+  }
+}
+
+
+typedef struct{
+  vec3_t position;
+  vec3_t rotation;
+  float fov;
+} camera_t;
+
 vec2_t vertices[4] = {
   { .x = 40, .y = 40 },
   { .x = 80, .y = 40 },
@@ -28,8 +53,21 @@ void process_input(void) {
   }
 }
 
-int cross_product(vec2_t v0, vec2_t v1){
- return v0.x * v1.y - v0.y * v1.x;
+vec2_t project_vec3(vec3_t v){
+  vec2_t new_vector = {v.x, v.y};
+  return new_vector;
+}
+
+void draw_matrix(){
+  int current_index = 0;
+ for (float x = -1; x <= 1; x += 0.25) {
+    for (float y = -1; y <= 1; y += 0.25) {
+      for (float z = -1; z <= 1; z += 0.25) {
+        vec2_t projected_v = project_vec3(matrix[current_index]);
+        draw_pixel((projected_v.x * FOV + 200.0), (projected_v.y * FOV + 200.0), 0xFFFF0000);
+      }
+    }
+  }
 }
 
 void triangle_fill(vec2_t v0, vec2_t v1, vec2_t v2, uint32_t color) {
@@ -57,11 +95,10 @@ void triangle_fill(vec2_t v0, vec2_t v1, vec2_t v2, uint32_t color) {
       vec2_t v1v2= {v2.x - v1.x, v2.y-v1.y};
       vec2_t v2v0= {v0.x - v2.x, v0.y-v2.y};
 
-      int cross1 = cross_product(v0v1, v0p);
-      int cross2 = cross_product(v1v2, v1p);
-      int cross3 = cross_product(v2v0, v2p);
+      float cross1 = vec2_cross(&v0v1, &v0p);
+      float cross2 = vec2_cross(&v1v2, &v1p);
+      float cross3 = vec2_cross(&v2v0, &v2p);
       
-      // Check if point is on the same side of all edges
       if (cross1 >= 0 && cross2 >= 0 && cross3 >= 0) {
           draw_pixel(x, y, color);
       }
@@ -76,12 +113,14 @@ void render(void) {
   vec2_t v1 = vertices[1];
   vec2_t v2 = vertices[2];
 
-  triangle_fill(v0, v1, v2, 0xFF00FF00);
+  draw_matrix();
 
   render_framebuffer();
 }
 
 int main(void) {
+
+  init_matrix();
   is_running = create_window();
 
   while (is_running) {
