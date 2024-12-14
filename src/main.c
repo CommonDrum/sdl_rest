@@ -9,7 +9,8 @@ bool is_running = false;
 
 
 const int NO_OF_POINTS = 9 * 9 * 9;
-const float FOV = 9.0;
+const float FOV = 300.0;
+const vec3_t CAMERA_POS = {0,0,-5};
 vec3_t  matrix[NO_OF_POINTS];
 
 int current_index = 0;
@@ -54,7 +55,8 @@ void process_input(void) {
 }
 
 vec2_t project_vec3(vec3_t v){
-  vec2_t new_vector = {v.x * FOV, v.y * FOV};
+
+  vec2_t new_vector = {v.x * FOV / (v.z + CAMERA_POS.z), v.y * FOV / (v.z + CAMERA_POS.z)};
   return new_vector;
 }
 
@@ -64,7 +66,8 @@ void draw_matrix(){
     for (float y = -1; y <= 1; y += 0.25) {
       for (float z = -1; z <= 1; z += 0.25) {
         vec2_t projected_v = project_vec3(matrix[current_index++]);
-        draw_pixel((projected_v.x + 64.0), (projected_v.y + 64.0), 0xFFFF0000);
+
+        draw_pixel((projected_v.x + 128.0), (projected_v.y + 128.0), 0xFFFF0000);
       }
     }
   }

@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <SDL.h>
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 128
+#define SCREEN_WIDTH 256
+#define SCREEN_HEIGHT 256
 
 #define FPS 30
 #define MILLISECS_PER_FRAME (1000 / FPS)
