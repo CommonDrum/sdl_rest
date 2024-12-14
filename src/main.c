@@ -16,8 +16,8 @@ vec3_t  matrix[NO_OF_POINTS];
 
 camera_t camera = {
   {0,0,-5},
-  {0,0,0},
-  300.0
+  {0.2,0,0},
+  350.0
 };
 
 
@@ -70,20 +70,53 @@ void draw_matrix(){
   }
 }
 
+void process_all_faces(triangle_t * triangles_to_render){
+
+  for (int i = 0; i < N_MESH_FACES; i++){
+    vec3_t a =  mesh_vertices[mesh_faces[i].a];
+    vec3_t b =  mesh_vertices[mesh_faces[i].b];
+    vec3_t c =  mesh_vertices[mesh_faces[i].c];
+
+    a = vec3_rotate_x(a, camera.rotation.x);
+    b = vec3_rotate_x(b, camera.rotation.x);
+    c = vec3_rotate_x(c, camera.rotation.x);
+
+
+    a = vec3_rotate_z(a, camera.rotation.x);
+    b = vec3_rotate_z(b, camera.rotation.x);
+    c = vec3_rotate_z(c, camera.rotation.x);
+
+    triangles_to_render[i] = (triangle_t){
+      project_vec3(a),
+      project_vec3(b),
+      project_vec3(c)
+    };
+  }
+}
+
+
+void draw_all_faces(){
+  triangle_t triangles_to_render[N_MESH_FACES];
+  process_all_faces(triangles_to_render);
+  for (int i = 0; i < N_MESH_FACES; i++){
+    triangle_t triangle = triangles_to_render[i];
+
+    draw_pixel((triangle.a.x + 128.0), (triangle.a.y + 128.0), 0xFFFF0000);
+    draw_pixel((triangle.b.x + 128.0), (triangle.b.y + 128.0), 0xFFFF0000);
+    draw_pixel((triangle.c.x + 128.0), (triangle.c.y + 128.0), 0xFFFF0000);
+  }
+}
+
 
 void render(void) {
   clear_framebuffer(0xFF000000);
-
-  camera.position = (vec3_t){0,0, camera.position.z - 0.01};
-
-  draw_matrix();
-
+  camera.rotation.x += 0.01;
+  draw_all_faces();
   render_framebuffer();
 }
 
 int main(void) {
 
-  init_matrix();
   is_running = create_window();
 
   while (is_running) {
