@@ -15,9 +15,9 @@ const int NO_OF_POINTS = 9 * 9 * 9;
 vec3_t  matrix[NO_OF_POINTS];
 
 camera_t camera = {
-  {0,0,-5},
+  {0,0,-8},
   {0.2,0,0},
-  350.0
+  200.0
 };
 
 
@@ -33,9 +33,15 @@ void init_matrix(){
   }
 }
 
-vec2_t project_vec3(vec3_t v){
-  vec2_t new_vector = {v.x * camera.fov / (v.z + camera.position.z), v.y * camera.fov / (v.z + camera.position.z)};
-  return new_vector;
+vec2_t project(vec3_t point) {
+   float z = point.z;
+    if (fabs(z) < 0.001) z = 0.001;
+    
+    vec2_t projected_point = {
+        .x = (camera.fov * point.x) / z,
+        .y = (camera.fov * point.y) / z
+    };
+    return projected_point;
 }
 
 void process_input(void) {
@@ -62,7 +68,7 @@ void draw_matrix(){
       for (float z = -1; z <= 1; z += 0.25) {
         matrix[current_index] = vec3_rotate_z(matrix[current_index], 0.02);
         matrix[current_index] = vec3_rotate_x(matrix[current_index], 0.01);
-        vec2_t projected_v = project_vec3(matrix[current_index++]);
+        vec2_t projected_v = project(matrix[current_index++]);
 
         draw_pixel((projected_v.x + 128.0), (projected_v.y + 128.0), 0xFFFF0000);
       }
@@ -73,9 +79,9 @@ void draw_matrix(){
 void process_all_faces(triangle_t * triangles_to_render){
 
   for (int i = 0; i < N_MESH_FACES; i++){
-    vec3_t a =  mesh_vertices[mesh_faces[i].a];
-    vec3_t b =  mesh_vertices[mesh_faces[i].b];
-    vec3_t c =  mesh_vertices[mesh_faces[i].c];
+    vec3_t a =  mesh_vertices[mesh_faces[i].a -1];
+    vec3_t b =  mesh_vertices[mesh_faces[i].b -1];
+    vec3_t c =  mesh_vertices[mesh_faces[i].c -1];
 
     a = vec3_rotate_x(a, camera.rotation.x);
     b = vec3_rotate_x(b, camera.rotation.x);
@@ -86,10 +92,15 @@ void process_all_faces(triangle_t * triangles_to_render){
     b = vec3_rotate_z(b, camera.rotation.x);
     c = vec3_rotate_z(c, camera.rotation.x);
 
+    a.z += camera.position.z;
+    b.z += camera.position.z;
+    c.z += camera.position.z;
+
+
     triangles_to_render[i] = (triangle_t){
-      project_vec3(a),
-      project_vec3(b),
-      project_vec3(c)
+      project(a),
+      project(b),
+      project(c)
     };
   }
 }
