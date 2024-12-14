@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include "display.h"
 #include "vec2.h"
+#include <math.h>
 
 bool is_running = false;
 
@@ -60,11 +61,31 @@ vec2_t project_vec3(vec3_t v){
   return new_vector;
 }
 
+vec3_t rotate_vec3_z(vec3_t v, float angle) {
+    vec3_t new = {
+        .x = v.x * cos(angle) - v.y * sin(angle),
+        .y = v.x * sin(angle) + v.y * cos(angle),
+        .z = v.z
+    };
+    return new;
+}
+
+vec3_t rotate_vec3_x(vec3_t v, float angle) {
+    vec3_t new = {
+        .y = v.y * cos(angle) - v.z * sin(angle),
+        .z = v.y * sin(angle) + v.z * cos(angle),
+        .x = v.x
+    };
+    return new;
+}
+
 void draw_matrix(){
   int current_index = 0;
  for (float x = -1; x <= 1; x += 0.25) {
     for (float y = -1; y <= 1; y += 0.25) {
       for (float z = -1; z <= 1; z += 0.25) {
+        matrix[current_index] = rotate_vec3_z(matrix[current_index], 0.02);
+        matrix[current_index] = rotate_vec3_x(matrix[current_index], 0.01);
         vec2_t projected_v = project_vec3(matrix[current_index++]);
 
         draw_pixel((projected_v.x + 128.0), (projected_v.y + 128.0), 0xFFFF0000);
