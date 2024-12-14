@@ -2,21 +2,27 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <SDL.h>
-#include "display.h"
-#include "vec2.h"
 #include <math.h>
+
+#include "display.h"
+#include "mesh.h"
+#include "triangle.h"
 
 bool is_running = false;
 
 
 const int NO_OF_POINTS = 9 * 9 * 9;
-const float FOV = 300.0;
-const vec3_t CAMERA_POS = {0,0,-5};
 vec3_t  matrix[NO_OF_POINTS];
 
-int current_index = 0;
+camera_t camera = {
+  {0,0,-5},
+  {0,0,0},
+  300.0
+};
+
 
 void init_matrix(){
+  int current_index = 0;
   for (float x = -1; x <= 1; x += 0.25) {
     for (float y = -1; y <= 1; y += 0.25) {
       for (float z = -1; z <= 1; z += 0.25) {
@@ -27,18 +33,10 @@ void init_matrix(){
   }
 }
 
-
-typedef struct{
-  vec3_t position;
-  vec3_t rotation;
-  float fov;
-} camera_t;
-
-vec2_t vertices[4] = {
-  { .x = 40, .y = 40 },
-  { .x = 80, .y = 40 },
-  { .x = 40, .y = 80 }
-};
+vec2_t project_vec3(vec3_t v){
+  vec2_t new_vector = {v.x * camera.fov / (v.z + camera.position.z), v.y * camera.fov / (v.z + camera.position.z)};
+  return new_vector;
+}
 
 void process_input(void) {
   SDL_Event event;
@@ -55,37 +53,15 @@ void process_input(void) {
   }
 }
 
-vec2_t project_vec3(vec3_t v){
 
-  vec2_t new_vector = {v.x * FOV / (v.z + CAMERA_POS.z), v.y * FOV / (v.z + CAMERA_POS.z)};
-  return new_vector;
-}
-
-vec3_t rotate_vec3_z(vec3_t v, float angle) {
-    vec3_t new = {
-        .x = v.x * cos(angle) - v.y * sin(angle),
-        .y = v.x * sin(angle) + v.y * cos(angle),
-        .z = v.z
-    };
-    return new;
-}
-
-vec3_t rotate_vec3_x(vec3_t v, float angle) {
-    vec3_t new = {
-        .y = v.y * cos(angle) - v.z * sin(angle),
-        .z = v.y * sin(angle) + v.z * cos(angle),
-        .x = v.x
-    };
-    return new;
-}
 
 void draw_matrix(){
   int current_index = 0;
  for (float x = -1; x <= 1; x += 0.25) {
     for (float y = -1; y <= 1; y += 0.25) {
       for (float z = -1; z <= 1; z += 0.25) {
-        matrix[current_index] = rotate_vec3_z(matrix[current_index], 0.02);
-        matrix[current_index] = rotate_vec3_x(matrix[current_index], 0.01);
+        matrix[current_index] = vec3_rotate_z(matrix[current_index], 0.02);
+        matrix[current_index] = vec3_rotate_x(matrix[current_index], 0.01);
         vec2_t projected_v = project_vec3(matrix[current_index++]);
 
         draw_pixel((projected_v.x + 128.0), (projected_v.y + 128.0), 0xFFFF0000);
@@ -94,48 +70,11 @@ void draw_matrix(){
   }
 }
 
-void triangle_fill(vec2_t v0, vec2_t v1, vec2_t v2, uint32_t color) {
-  // Finds the bounding box with all candidate pixels
-  int x_min = fmin(fmin(v0.x, v1.x), v2.x);
-  int y_min = fmin(fmin(v0.y, v1.y), v2.y);
-  int x_max = fmax(fmax(v0.x, v1.x), v2.x);
-  int y_max = fmax(fmax(v0.y, v1.y), v2.y);
-
-  draw_pixel(v0.x, v0.y, 0xFFFF0000);
-  draw_pixel(v1.x, v1.y, 0xFFFF0000);
-  draw_pixel(v2.x, v2.y, 0xFFFF0000);
-
-  // Loop all candidate pixels inside the bounding box
-  for (int y = y_min; y <= y_max; y++) {
-    for (int x = x_min; x <= x_max; x++) {
-      vec2_t p  = {x,y};
-
-      vec2_t v0p = {p.x - v0.x, p.y-v0.y};
-      vec2_t v1p = {p.x - v1.x, p.y-v1.y};
-      vec2_t v2p = {p.x - v2.x, p.y-v2.y};
-
-
-      vec2_t v0v1= {v1.x - v0.x, v1.y-v0.y};
-      vec2_t v1v2= {v2.x - v1.x, v2.y-v1.y};
-      vec2_t v2v0= {v0.x - v2.x, v0.y-v2.y};
-
-      float cross1 = vec2_cross(&v0v1, &v0p);
-      float cross2 = vec2_cross(&v1v2, &v1p);
-      float cross3 = vec2_cross(&v2v0, &v2p);
-      
-      if (cross1 >= 0 && cross2 >= 0 && cross3 >= 0) {
-          draw_pixel(x, y, color);
-      }
-    }
-  }
-}
 
 void render(void) {
   clear_framebuffer(0xFF000000);
- 
-  vec2_t v0 = vertices[0];
-  vec2_t v1 = vertices[1];
-  vec2_t v2 = vertices[2];
+
+  camera.position = (vec3_t){0,0, camera.position.z - 0.01};
 
   draw_matrix();
 
