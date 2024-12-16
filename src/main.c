@@ -17,9 +17,41 @@ vec3_t  matrix[NO_OF_POINTS];
 camera_t camera = {
   {0,0,-8},
   {0.2,0,0},
-  200.0
+  650.0
 };
 
+
+void draw_line(vec2_t* a, vec2_t* b) {
+    int x0 = (int)a->x;
+    int y0 = (int)a->y;
+    int x1 = (int)b->x;
+    int y1 = (int)b->y;
+
+    int dx = abs(x1 - x0);
+    int dy = abs(y1 - y0);
+    int sx = (x0 < x1) ? 1 : -1; // Step direction for x
+    int sy = (y0 < y1) ? 1 : -1; // Step direction for y
+
+    int err = dx - dy; // Initial decision variable
+
+    while (1) {
+        draw_pixel(x0 + 128, y0 + 128, 0xFFFF0000); // Draw pixel at current position
+
+        if (x0 == x1 && y0 == y1) break; // Line is complete
+
+        int e2 = 2 * err;
+
+        if (e2 > -dy) { // Move in x-direction
+            err -= dy;
+            x0 += sx;
+        }
+
+        if (e2 < dx) { // Move in y-direction
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
 
 void init_matrix(){
   int current_index = 0;
@@ -111,10 +143,8 @@ void draw_all_faces(){
   process_all_faces(triangles_to_render);
   for (int i = 0; i < N_MESH_FACES; i++){
     triangle_t triangle = triangles_to_render[i];
-
-    draw_pixel((triangle.a.x + 128.0), (triangle.a.y + 128.0), 0xFFFF0000);
-    draw_pixel((triangle.b.x + 128.0), (triangle.b.y + 128.0), 0xFFFF0000);
-    draw_pixel((triangle.c.x + 128.0), (triangle.c.y + 128.0), 0xFFFF0000);
+    draw_line(&triangle.a, &triangle.b);
+    draw_line(&triangle.b, &triangle.c);
   }
 }
 
@@ -127,7 +157,7 @@ void render(void) {
 }
 
 int main(void) {
-
+  init_matrix();
   is_running = create_window();
 
   while (is_running) {
