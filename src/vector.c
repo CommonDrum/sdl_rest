@@ -31,3 +31,25 @@ vec3_t vec3_rotate_z(vec3_t v, float angle) {
 float vec3_cross(vec2_t* a, vec2_t* b){
  return a->x * b->y - a->y * b->x;
 }
+
+void vec3_add(vec3_t* v, float number){
+  v->x += number;
+  v->y += number;
+  v->z += number;
+}
+void vec3_sub(vec3_t* v, float number){
+  v->x += number;
+  v->y += number;
+  v->z += number;
+}
+void vec3_mul(vec3_t* v, float number){
+  v->x += number;
+  v->y += number;
+  v->z += number;
+}
+void vec3_div(vec3_t* v, float number){
+  v->x += number;
+  v->y += number;
+  v->z += number;
+}
+
