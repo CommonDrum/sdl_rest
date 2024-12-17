@@ -14,9 +14,9 @@ bool is_running = false;
 
 
 camera_t camera = {
-  {0,0,-8},
+  {0,0,-100},
   {0.2,0,0},
-  650.0
+  651.0
 };
 
 
@@ -80,12 +80,11 @@ void process_input(void) {
 }
 
 
-void process_all_faces(triangle_t * triangles_to_render){
+void process_all_faces(triangle_t * triangles_to_render, model_t *model){
 
-  model_t model = load_obj("cube.obj");
-  vec3_t* mesh_vertices = model.vertices;
-  face_t* mesh_faces = model.faces;
-  int N_MESH_FACES = array_length(model.faces);
+  vec3_t* mesh_vertices = model->vertices;
+  face_t* mesh_faces = model->faces;
+  int N_MESH_FACES = array_length(model->faces);
 
 
 
@@ -120,9 +119,12 @@ void process_all_faces(triangle_t * triangles_to_render){
 void draw_all_faces(){
 
 
-  triangle_t triangles_to_render[12];
-  process_all_faces(triangles_to_render);
-  for (int i = 0; i < 12; i++){
+  model_t model = load_obj("skull.obj");
+  int N_MESH_FACES = array_length(model.faces);
+
+  triangle_t triangles_to_render[N_MESH_FACES];
+  process_all_faces(triangles_to_render, &model);
+  for (int i = 0; i < N_MESH_FACES; i++){
     triangle_t triangle = triangles_to_render[i];
     draw_line(&triangle.a, &triangle.b);
     draw_line(&triangle.b, &triangle.c);
