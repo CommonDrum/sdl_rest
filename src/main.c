@@ -5,14 +5,13 @@
 #include <math.h>
 
 #include "display.h"
-#include "mesh.h"
 #include "triangle.h"
+#include "obj_reader.h"
+#include "array.h"
+
 
 bool is_running = false;
 
-
-const int NO_OF_POINTS = 9 * 9 * 9;
-vec3_t  matrix[NO_OF_POINTS];
 
 camera_t camera = {
   {0,0,-8},
@@ -53,17 +52,6 @@ void draw_line(vec2_t* a, vec2_t* b) {
     }
 }
 
-void init_matrix(){
-  int current_index = 0;
-  for (float x = -1; x <= 1; x += 0.25) {
-    for (float y = -1; y <= 1; y += 0.25) {
-      for (float z = -1; z <= 1; z += 0.25) {
-        vec3_t new_point = {x,y,z};
-        matrix[current_index++] = new_point;
-      }
-    }
-  }
-}
 
 vec2_t project(vec3_t point) {
    float z = point.z;
@@ -92,23 +80,14 @@ void process_input(void) {
 }
 
 
-
-void draw_matrix(){
-  int current_index = 0;
- for (float x = -1; x <= 1; x += 0.25) {
-    for (float y = -1; y <= 1; y += 0.25) {
-      for (float z = -1; z <= 1; z += 0.25) {
-        matrix[current_index] = vec3_rotate_z(matrix[current_index], 0.02);
-        matrix[current_index] = vec3_rotate_x(matrix[current_index], 0.01);
-        vec2_t projected_v = project(matrix[current_index++]);
-
-        draw_pixel((projected_v.x + 128.0), (projected_v.y + 128.0), 0xFFFF0000);
-      }
-    }
-  }
-}
-
 void process_all_faces(triangle_t * triangles_to_render){
+
+  model_t model = load_obj("cube.obj");
+  vec3_t* mesh_vertices = model.vertices;
+  face_t* mesh_faces = model.faces;
+  int N_MESH_FACES = array_length(model.faces);
+
+
 
   for (int i = 0; i < N_MESH_FACES; i++){
     vec3_t a =  mesh_vertices[mesh_faces[i].a -1];
@@ -139,12 +118,15 @@ void process_all_faces(triangle_t * triangles_to_render){
 
 
 void draw_all_faces(){
-  triangle_t triangles_to_render[N_MESH_FACES];
+
+
+  triangle_t triangles_to_render[12];
   process_all_faces(triangles_to_render);
-  for (int i = 0; i < N_MESH_FACES; i++){
+  for (int i = 0; i < 12; i++){
     triangle_t triangle = triangles_to_render[i];
     draw_line(&triangle.a, &triangle.b);
     draw_line(&triangle.b, &triangle.c);
+    draw_line(&triangle.c, &triangle.a);
   }
 }
 
@@ -157,7 +139,6 @@ void render(void) {
 }
 
 int main(void) {
-  init_matrix();
   is_running = create_window();
 
   while (is_running) {
