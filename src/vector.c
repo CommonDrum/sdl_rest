@@ -8,6 +8,10 @@ float vec2_length(vec2_t v) {
     return sqrt(v.x * v.x + v.y * v.y);
 }
 
+int vec2_cross(vec2_t v0, vec2_t v1){
+ return v0.x * v1.y - v0.y * v1.x;
+}
+
 vec2_t vec2_add(vec2_t a, vec2_t b) {
     vec2_t result = {
         .x = a.x + b.x,
@@ -126,3 +130,11 @@ vec3_t vec3_rotate_z(vec3_t v, float angle) {
     };
     return rotated_vector;
 }
+
+
+vec3_t normalize(vec3_t v){
+  float len = vec3_length(v);
+  return vec3_div(v, len);
+}
+
+
