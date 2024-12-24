@@ -8,6 +8,7 @@
 #include "display.h"
 #include "obj_reader.h"
 #include "triangle.h"
+#include "vector.h"
 
 #define max(a, b)                                                              \
   ({                                                                           \
@@ -86,6 +87,20 @@ void process_input(void) {
   }
 }
 
+bool backface_culling(vec4_t a, vec4_t b, vec4_t c) {
+  vec4_t ab = vec4_sub(c, a);
+  vec4_t ac = vec4_sub(b, a);
+  vec4_t normal = vec4_cross(ab, ac);
+  vec4_t camera_ray = vec4_sub(camera.position, a);
+  float dot_product = vec4_dot(camera_ray, normal);
+
+  if (dot_product > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void process_all_faces(triangle_t **triangles_to_render, model_t *model) {
 
   vec4_t *mesh_vertices = model->vertices;
@@ -101,14 +116,7 @@ void process_all_faces(triangle_t **triangles_to_render, model_t *model) {
     b.z -= camera.position.z + 10;
     c.z -= camera.position.z + 10;
 
-    /*BACKFACE CULLING */
-    vec4_t ab = vec4_sub(c, a);
-    vec4_t ac = vec4_sub(b, a);
-    vec4_t normal = vec4_cross(ab, ac);
-    vec4_t camera_ray = vec4_sub(camera.position, a);
-    float dot_product = vec4_dot(camera_ray, normal);
-
-    if (dot_product > 0) {
+    if (backface_culling(a, b, c)) {
       continue;
     }
 
