@@ -25,7 +25,7 @@
 
 bool is_running = false;
 
-camera_t camera = {{0, 0, 0}, {0.2, 0, 0}, 600.0};
+camera_t camera = {{0, 0, 0, 1}, {0.2, 0, 0, 1}, 600.0};
 
 void draw_line(vec2_t *a, vec2_t *b) {
   int x0 = (int)a->x;
@@ -61,7 +61,7 @@ void draw_line(vec2_t *a, vec2_t *b) {
   }
 }
 
-vec2_t project(vec3_t point) {
+vec2_t project(vec4_t point) {
   float z = point.z;
   if (fabs(z) < 0.001)
     z = 0.001;
@@ -88,33 +88,25 @@ void process_input(void) {
 
 void process_all_faces(triangle_t **triangles_to_render, model_t *model) {
 
-  vec3_t *mesh_vertices = model->vertices;
+  vec4_t *mesh_vertices = model->vertices;
   face_t *mesh_faces = model->faces;
   int N_MESH_FACES = array_length(model->faces);
 
   for (int i = 0; i < N_MESH_FACES; i++) {
-    vec3_t a = mesh_vertices[mesh_faces[i].a - 1];
-    vec3_t b = mesh_vertices[mesh_faces[i].b - 1];
-    vec3_t c = mesh_vertices[mesh_faces[i].c - 1];
-
-    a = vec3_rotate_x(a, camera.rotation.x);
-    b = vec3_rotate_x(b, camera.rotation.x);
-    c = vec3_rotate_x(c, camera.rotation.x);
-
-    a = vec3_rotate_z(a, camera.rotation.x);
-    b = vec3_rotate_z(b, camera.rotation.x);
-    c = vec3_rotate_z(c, camera.rotation.x);
+    vec4_t a = mesh_vertices[mesh_faces[i].a - 1];
+    vec4_t b = mesh_vertices[mesh_faces[i].b - 1];
+    vec4_t c = mesh_vertices[mesh_faces[i].c - 1];
 
     a.z -= camera.position.z + 10;
     b.z -= camera.position.z + 10;
     c.z -= camera.position.z + 10;
 
     /*BACKFACE CULLING */
-    vec3_t ab = vec3_sub(c, a);
-    vec3_t ac = vec3_sub(b, a);
-    vec3_t normal = vec3_cross(ab, ac);
-    vec3_t camera_ray = vec3_sub(camera.position, a);
-    float dot_product = vec3_dot(camera_ray, normal);
+    vec4_t ab = vec4_sub(c, a);
+    vec4_t ac = vec4_sub(b, a);
+    vec4_t normal = vec4_cross(ab, ac);
+    vec4_t camera_ray = vec4_sub(camera.position, a);
+    float dot_product = vec4_dot(camera_ray, normal);
 
     if (dot_product > 0) {
       continue;

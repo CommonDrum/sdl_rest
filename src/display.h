@@ -1,10 +1,10 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "vector.h"
 #include <SDL.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #define SCREEN_WIDTH 256
 #define SCREEN_HEIGHT 256
@@ -12,9 +12,9 @@
 #define FPS 30
 #define MILLISECS_PER_FRAME (1000 / FPS)
 
-typedef struct{
-  vec3_t position;
-  vec3_t rotation;
+typedef struct {
+  vec4_t position;
+  vec4_t rotation;
   float fov;
 } camera_t;
 
