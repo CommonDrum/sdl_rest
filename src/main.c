@@ -27,6 +27,7 @@
 bool is_running = false;
 
 camera_t camera = {{0, 0, 0, 1}, {0.2, 0, 0, 1}, 600.0};
+vec4_t proj_matrix;
 
 void draw_line(vec2_t *a, vec2_t *b) {
   int x0 = (int)a->x;
@@ -60,6 +61,10 @@ void draw_line(vec2_t *a, vec2_t *b) {
       y0 += sy;
     }
   }
+}
+
+vec4_t make_projection(float fov, float aspect, float znear, float zfar){
+  vec4_t matrix = {{{0}}};
 }
 
 vec2_t project(vec4_t point) {
